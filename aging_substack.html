@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Osservabilità parziale e accesso alla conoscenza in presenza di eventi nascosti</title>
+
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$','$']],
+    displayMath: [['$$','$$']],
+    tags: 'ams'
+  }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,300;1,6..72,400&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,700;1,9..144,300;1,9..144,400&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --ink:        #1c1917;
+  --muted:      #78716c;
+  --faint:      #a8a29e;
+  --rule:       #e7e5e4;
+  --accent:     #1e3a5f;
+  --accent-lt:  #dbeafe;
+  --bg:         #fafaf9;
+  --eq-bg:      #f5f5f4;
+  --serif:      'Newsreader', Georgia, serif;
+  --display:    'Fraunces', Georgia, serif;
+  --w:          680px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: 20px;
+  line-height: 1.8;
+  padding: 0 1.5rem 6rem;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap {
+  max-width: var(--w);
+  margin: 0 auto;
+}
+
+/* ── HEADER ── */
+.header {
+  padding: 4rem 0 3rem;
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 3rem;
+}
+
+.kicker {
+  font-family: var(--serif);
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 1.4rem;
+}
+
+h1 {
+  font-family: var(--display);
+  font-size: clamp(2rem, 5vw, 2.8rem);
+  font-weight: 300;
+  line-height: 1.18;
+  letter-spacing: -.02em;
+  color: var(--ink);
+  margin-bottom: 1rem;
+}
+
+.subtitle {
+  font-family: var(--display);
+  font-style: italic;
+  font-size: 1.15rem;
+  font-weight: 300;
+  color: var(--muted);
+  margin-bottom: 1.8rem;
+  line-height: 1.5;
+}
+
+.byline {
+  font-size: 13px;
+  color: var(--faint);
+  letter-spacing: .03em;
+}
+.byline a { color: var(--accent); text-decoration: none; border-bottom: 1px solid var(--accent-lt); }
+.byline a:hover { border-color: var(--accent); }
+
+/* ── ABSTRACT ── */
+.abstract {
+  position: relative;
+  padding: 1.6rem 1.8rem 1.6rem 2.2rem;
+  margin: 0 0 3.5rem;
+  background: var(--eq-bg);
+  border-radius: 2px;
+}
+.abstract::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--accent);
+  border-radius: 2px 0 0 2px;
+}
+.abstract-label {
+  font-size: 10px;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 500;
+  margin-bottom: .8rem;
+}
+.abstract p {
+  font-size: 17px;
+  line-height: 1.75;
+  color: #44403c;
+  margin-bottom: .7rem;
+}
+.abstract p:last-child { margin-bottom: 0; }
+
+/* ── TYPOGRAPHY ── */
+h2 {
+  font-family: var(--display);
+  font-size: 1.5rem;
+  font-weight: 500;
+  letter-spacing: -.015em;
+  line-height: 1.3;
+  margin: 3.5rem 0 1rem;
+  color: var(--ink);
+}
+
+h2 .num {
+  font-family: var(--serif);
+  font-size: .85em;
+  font-weight: 300;
+  color: var(--faint);
+  margin-right: .5em;
+}
+
+h3 {
+  font-family: var(--display);
+  font-size: 1.12rem;
+  font-weight: 500;
+  font-style: italic;
+  letter-spacing: -.01em;
+  margin: 2.5rem 0 .8rem;
+  color: var(--ink);
+}
+
+h4 {
+  font-family: var(--serif);
+  font-size: .9rem;
+  font-weight: 400;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 2rem 0 .6rem;
+}
+
+p { margin-bottom: 1.2rem; }
+p:last-child { margin-bottom: 0; }
+
+strong { font-weight: 500; }
+em { font-style: italic; }
+
+a { color: var(--accent); text-decoration: none; border-bottom: 1px solid var(--accent-lt); }
+a:hover { border-color: var(--accent); }
+
+/* ── EQUATIONS ── */
+.eq {
+  background: var(--eq-bg);
+  padding: 1.1rem 1.5rem;
+  margin: 1.8rem 0;
+  border-radius: 3px;
+  overflow-x: auto;
+  font-size: 18px;
+}
+
+/* ── CHAIN ── */
+.chain {
+  text-align: center;
+  font-style: italic;
+  color: var(--muted);
+  font-size: .95rem;
+  letter-spacing: .03em;
+  margin: 1.4rem 0;
+}
+
+/* ── RULE ── */
+hr {
+  border: none;
+  border-top: 1px solid var(--rule);
+  margin: 3rem 0;
+}
+
+/* ── REFERENCE ── */
+.ref {
+  font-size: 14px;
+  color: var(--faint);
+  padding-top: 2rem;
+  border-top: 1px solid var(--rule);
+  margin-top: 4rem;
+  line-height: 1.6;
+}
+
+/* ── FOOTNOTES ── */
+.footnotes {
+  font-size: 14px;
+  color: var(--muted);
+  border-top: 1px solid var(--rule);
+  margin-top: 3.5rem;
+  padding-top: 1.5rem;
+  line-height: 1.65;
+}
+.footnotes ol { padding-left: 1.4rem; }
+.footnotes li { margin-bottom: .6rem; }
+sup { font-size: .65em; vertical-align: super; line-height: 0; }
+sup a { color: var(--accent); border: none; }
+
+/* ── SUBSTACK NOTE ── */
+.substack-note {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 6px;
+  padding: 1.2rem 1.5rem;
+  margin: 2.5rem 0;
+  font-size: 14px;
+  color: #1e40af;
+  line-height: 1.6;
+}
+.substack-note strong { color: #1e3a8a; }
+
+@media (max-width: 600px) {
+  body { font-size: 18px; }
+  h1 { font-size: 1.85rem; }
+  h2 { font-size: 1.3rem; }
+  .eq { padding: .8rem 1rem; font-size: 16px; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="header">
+  <div class="kicker">Probabilità · Processi stocastici</div>
+  <h1>Osservabilità parziale e accesso alla conoscenza in presenza di eventi nascosti</h1>
+  <p class="subtitle">Aging nei processi di rinnovo con tempi scambiabili</p>
+  <div class="byline">
+    Fabio Vanni &ensp;·&ensp;
+    <a href="https://doi.org/10.3390/math12101529" target="_blank"><em>Mathematics</em> 12(10), 1529 (2024)</a>
+  </div>
+</header>
+
+<div class="abstract">
+  <div class="abstract-label">Abstract</div>
+  <p>Questa nota sviluppa un framework probabilistico per l'analisi di sequenze di eventi parzialmente accessibili all'osservatore. Gli eventi sono descritti come realizzazioni di un processo di rinnovo con tempi di inter-arrivo scambiabili, rappresentati tramite il teorema di de Finetti come osservazioni condizionatamente indipendenti dato uno stato latente del sistema generatore.</p>
+  <p>Il punto centrale è l'effetto del <strong>periodo refrattario</strong> $t_r$: l'intervallo temporale dopo un evento osservato durante il quale nuovi eventi non sono accessibili. Nei processi <em>poissonian-like</em> il periodo refrattario non modifica la scala dominante della densità residua, del tasso di rischio e della funzione di rinnovo; nei processi a coda pesante, invece, produce aging effettivo.</p>
+  <p>La conseguenza epistemologica: l'assenza di eventi dopo una finestra cieca non costituisce evidenza sul comportamento del processo sottostante. Nei regimi non poissonian-like, <strong>cambia la percezione del rischio dell'osservatore</strong> — non il sistema — e il rischio residuo va aggiornato esplicitamente in funzione di $t_r$.</p>
+</div>
+
+<section>
+  <h2 class="unnumbered">Motivazione</h2>
+  <p>Molti processi empirici producono sequenze di eventi solo parzialmente accessibili. Questa limitazione può essere strutturale: il processo genera eventi a una scala temporale più fine di quella su cui l'osservatore opera. Due eventi molto ravvicinati possono non essere distinguibili come occorrenze separate; un evento può verificarsi prima che il sistema di osservazione abbia terminato di elaborare il precedente.</p>
+  <p>Quello che l'osservatore registra non è il processo originario, ma una sua proiezione filtrata. La domanda rilevante non è soltanto quanti eventi siano avvenuti, ma <em>cosa si possa inferire sul processo sottostante</em> dalla sequenza effettivamente vista. L'effetto della finestra cieca — il periodo refrattario $t_r$ — sulla distribuzione predittiva degli eventi successivi è il punto discriminante tra due classi fondamentali di processi.</p>
+</section>
+
+<section>
+  <h2><span class="num">1.</span>Il modello: processi di rinnovo scambiabili</h2>
+  <p>Siano $0 < t_1 < t_2 < \cdots < t_n$ i tempi di occorrenza degli eventi osservabili. Gli intervalli tra eventi successivi sono $\tau_i = t_i - t_{i-1}$. Il modello non assume che gli $\tau_i$ siano i.i.d.: il sistema generatore può trovarsi in stati diversi — regimi di alta o bassa attività, condizioni latenti variabili.</p>
+  <p>Una sequenza $(\tau_1, \tau_2, \ldots, \tau_n)$ è <strong>scambiabile</strong> se la distribuzione congiunta è invariante per qualsiasi permutazione degli indici:</p>
+  <div class="eq">$$(\tau_1, \tau_2, \ldots, \tau_n) \;\stackrel{D}{=}\; (\tau_{\sigma(1)}, \ldots, \tau_{\sigma(n)}) \qquad \forall\, \sigma \in S(n).$$</div>
+  <p>L'ordine in cui si osservano gli eventi non aggiunge informazione rilevante rispetto alla struttura probabilistica della sequenza. L'identità statistica è preservata, ma non l'indipendenza — un'assunzione più realistica dell'i.i.d. per sistemi con eterogeneità latente.</p>
+</section>
+
+<section>
+  <h2><span class="num">2.</span>Il teorema di de Finetti e la struttura bayesiana</h2>
+  <p>Una sequenza infinita di variabili aleatorie scambiabili si rappresenta come miscela di sequenze i.i.d., condizionatamente a una quantità latente. Nella versione parametrica:</p>
+  <div class="eq">$$p(\tau_1, \ldots, \tau_n) = \int_{\Theta} \prod_{i=1}^n f(\tau_i \mid \theta)\,\pi(\theta)\,d\theta.$$</div>
+  <p>Qui $\theta$ rappresenta lo stato latente del sistema — regime di attività, configurazione interna, condizione di vulnerabilità — e $\pi(\theta)$ è la distribuzione a priori calibrabile dagli eventi osservati.<sup><a href="#fn1" id="ref1">1</a></sup> Il prodotto $\prod_i f(\tau_i|\theta)$ è la likelihood della sequenza dato il regime $\theta$.<sup><a href="#fn2" id="ref2">2</a></sup></p>
+  <p>Il <strong>tasso di rischio</strong> misura il rischio istantaneo che un nuovo evento si verifichi dopo un'attesa $\tau$ senza osservazioni:</p>
+  <div class="eq">$$h(\tau) = \frac{f(\tau)}{1 - F(\tau)}.$$</div>
+  <p class="chain">evento latente &nbsp;⟶&nbsp; evento non rivelato &nbsp;⟶&nbsp; evento osservato</p>
+  <p>$h(\tau)$ quantifica la probabilità istantanea che un evento interno al sistema si manifesti come osservazione registrabile dopo un'attesa $\tau$. La <strong>funzione di rinnovo</strong> $R(t) = \mathbb{E}[N(t)]$ è il numero atteso di eventi registrati entro l'orizzonte $t$.</p>
+</section>
+
+<section>
+  <h2><span class="num">3.</span>Il periodo refrattario come modello di osservabilità limitata</h2>
+  <p>Il <strong>periodo refrattario</strong> $t_r \geq 0$ è l'intervallo minimo che deve trascorrere dopo un evento registrato prima che l'osservatore possa rilevarne un altro come occorrenza distinta. È l'analogo del <em>dead time</em> nei sistemi di rilevazione fisica.</p>
+  <p>L'<strong>operatore di aging</strong> trasforma $\{\tau_i\}$ nella sequenza osservata $\{\tau_i^{(a)}\}$, dove $\tau_i^{(a)}$ è il tempo residuo tra la fine del periodo refrattario e il primo evento successivo accessibile. Il risultato centrale: questa trasformazione <strong>preserva la scambiabilità</strong>. Il framework bayesiano rimane valido anche sui dati filtrati dal periodo refrattario.</p>
+  <p>La densità aged marginale è caratterizzata nello spazio di Laplace da:</p>
+  <div class="eq">$$\widehat{f}^{(a)}(u,s_r) = \int_{\Theta} \frac{\widehat{f}(s_r\mid\theta)-\widehat{f}(u\mid\theta)}{(u-s_r)\,\bigl(1-\widehat{f}(s_r\mid\theta)\bigr)} \,\pi(\theta)\,d\theta. \tag{1}$$</div>
+  <p>Da (1) si ottengono le metriche operative del processo aged: la funzione di rinnovo $R^{(a)}(\tau,t_r)$ e il tasso di rischio aged</p>
+  <div class="eq">$$h^{(a)}(\tau,t_r) = \frac{f^{(a)}(\tau,t_r)}{1-F^{(a)}(\tau,t_r)}.$$</div>
+  <p>$h^{(a)}$ non è una quantità statica: <strong>evolve al trascorrere del tempo senza nuovi eventi</strong>. Il silenzio aggiorna la stima del regime latente, non lo stato reale del sistema generatore. L'osservatore vede cambiare la propria percezione del rischio, non il processo.</p>
+</section>
+
+<section>
+  <h2><span class="num">4.</span>Processi poissonian-like: neutralità di scala</h2>
+  <p>Il tempo refrattario è <strong>neutro alla scala</strong> se esistono $f_\star$, $h_\star$, $\mathcal{R}_\star$ indipendenti da $t_r$ tali che:</p>
+  <div class="eq">$$f^{(r)}(\tau;t_r) \asymp c_f(t_r)\,f_\star(\tau), \qquad h^{(r)}(\tau;t_r) \sim h_\star(\tau), \qquad \mathcal{R}^{(r)}(t;t_r) \asymp c_R(t_r)\,\mathcal{R}_\star(t).$$</div>
+  <p>Il periodo refrattario può modificare un prefattore o una scala finita, ma non la classe dominante di decadimento. Epistemicamente: la finestra cieca non introduce distorsioni strutturali nella conoscenza predittiva del processo.</p>
+
+  <h3>Caso esatto: Poisson a tasso fisso</h3>
+  <p>Con $\tau_i \sim \mathrm{Exp}(\lambda)$ la neutralità è esatta. La proprietà di assenza di memoria dà $S^{(r)}(\tau;t_r) = e^{-\lambda(t_r+\tau)}/e^{-\lambda t_r} = e^{-\lambda\tau} = S(\tau)$, quindi:</p>
+  <div class="eq">$$f^{(r)} = f, \qquad h^{(r)} = \lambda, \qquad \mathcal{R}^{(r)} = \lambda t.$$</div>
+  <p>L'osservatore che riprende dopo $t_r$ ha la stessa distribuzione predittiva di chi non si fosse mai interrotto. L'assenza di eventi durante la finestra cieca non aggiunge né toglie informazione.</p>
+
+  <h3>Miscele poissoniane</h3>
+  <p>Con $\tau_i \mid \lambda \sim \mathrm{Exp}(\lambda)$ e $\lambda \sim \pi(\lambda)$, condizionatamente a $\lambda$ vale ancora l'assenza di memoria. Due scelte per $\pi(\lambda)$:</p>
+
+  <h4>Tasso uniforme &nbsp; $\Lambda \sim \mathrm{U}(0,2m)$</h4>
+  <p>Densità marginale di Pareto, $f(\tau) \sim \frac{1}{2m}\tau^{-2}$ per $\tau \to \infty$, con $h(\tau) \sim \tau^{-1}$ e $\mathcal{R}(t) \sim \log t$. Dopo $t_r$ la classe asintotica è invariata: $f^{(r)} \asymp c_f(t_r)\,\tau^{-2}$, $h^{(r)} \sim \tau^{-1}$.</p>
+
+  <h4>Tasso gamma &nbsp; $\Lambda \sim \mathrm{GA}(\alpha,\beta)$</h4>
+  <p>Densità marginale Pareto-Lomax. Dopo $t_r$ si ottiene ancora una Pareto-Lomax con la pura traslazione $\beta \to \beta+t_r$:</p>
+  <div class="eq">$$f^{(r)}(\tau;t_r) = \frac{\alpha(\beta+t_r)^\alpha}{(\beta+t_r+\tau)^{\alpha+1}}, \qquad h^{(r)}(\tau;t_r) = \frac{\alpha}{\beta+t_r+\tau}, \qquad \mathcal{R}^{(r)}(t;t_r) \sim \frac{\alpha-1}{\beta+t_r}\,t.$$</div>
+  <p>L'esponente $\alpha$ è preservato esattamente. Il silenzio aggiorna la stima verso regimi a minore intensità — un aggiornamento bayesiano, non un cambiamento del processo generatore.</p>
+
+  <h4>Caso di frontiera: Erlang $\mathrm{GA}(2,\theta)$ con $\theta \sim \mathrm{U}(m,M)$</h4>
+  <p>La distribuzione condizionata non è esponenziale, ma la coda marginale resta esponenziale. Dopo $t_r$:</p>
+  <div class="eq">$$f^{(r)}(\tau;t_r) = \frac{1}{2(M-m)}\,e^{-\tau/(M-m)} \!\left(1 + e^{-2t_r/(M-m)}\right).$$</div>
+  <p>Il tasso di decadimento $1/(M-m)$ è preservato: aging effettivo nei transitori, neutralità asintotica della scala.</p>
+</section>
+
+<section>
+  <h2><span class="num">5.</span>Processi non poissonian-like: aging effettivo</h2>
+  <p>Il regime di aging è <strong>effettivo</strong> se la dipendenza da $t_r$ non è separabile dalla dipendenza da $\tau$. Non esiste $c_f(t_r)$ tale che $f^{(r)}(\tau;t_r) \asymp c_f(t_r)\,f_\star(\tau)$. La finestra cieca altera strutturalmente la distribuzione predittiva.</p>
+
+  <h3>Miscele di Mittag-Leffler</h3>
+  <p>Sia $\tau_i \mid \lambda \sim \mathrm{ML}(\alpha, \lambda)$ con $\lambda \sim \mathrm{U}(0, \Lambda)$ e $\alpha \in (0,1)$. La sopravvivenza condizionata è $S(\tau \mid \lambda) = E_\alpha\bigl(-(\lambda\tau)^\alpha\bigr)$, con coda di potenza per $\tau \to \infty$. A livello marginale:</p>
+  <div class="eq">$$f(\tau) \sim \frac{\alpha\,\Lambda^{-\alpha}}{(1-\alpha)\Gamma(1-\alpha)}\,\tau^{-(1+\alpha)}, \qquad h(\tau) \sim \frac{\alpha}{\tau}, \qquad \mathcal{R}(t) \sim \frac{\Lambda^\alpha}{(1+\alpha)\,\Gamma(1+\alpha)}\,t^\alpha.$$</div>
+  <p>La crescita di $\mathcal{R}$ è sublineare: il numero atteso di eventi cresce come $t^\alpha$, non proporzionalmente a $t$. Il tasso di rischio è decrescente — il tempo già trascorso senza eventi modifica la distribuzione predittiva.</p>
+
+  <h4>Effetto del periodo refrattario</h4>
+  <p>Dopo $t_r$, la densità residua assume la forma asintotica:</p>
+  <div class="eq">$$f^{(r)}(\tau;t_r) \;\sim\; \frac{\sin(\pi\alpha)}{\pi}\, \frac{t_r^\alpha}{\tau^\alpha(t_r+\tau)}.$$</div>
+  <p>La dipendenza da $t_r$ e da $\tau$ è intrecciata: non si fattorizza. Si distinguono due regimi separati dalla scala $\tau \sim t_r$:</p>
+  <div class="eq">$$\tau \ll t_r:\quad f^{(r)} \sim \frac{\sin(\pi\alpha)}{\pi}\,t_r^{\alpha-1}\,\tau^{-\alpha}$$</div>
+  <div class="eq">$$\tau \gg t_r:\quad f^{(r)} \sim \frac{\sin(\pi\alpha)}{\pi}\,t_r^\alpha\,\tau^{-(1+\alpha)}$$</div>
+  <p>L'esponente originale $-(1+\alpha)$ viene recuperato solo nella coda estrema $\tau \gg t_r$. Per la funzione di rinnovo:</p>
+  <div class="eq">$$\mathcal{R}^{(r)}(t;t_r) \;\sim\; \frac{\Lambda^\alpha}{(1+\alpha)\,\Gamma(1+\alpha)} \bigl[(t_r+t)^\alpha - t_r^\alpha\bigr].$$</div>
+  <p>Per $t \ll t_r$ la pendenza locale è $\alpha\,t_r^{\alpha-1}\,t$, che <strong>decresce</strong> con $t_r$ poiché $\alpha-1 < 0$. Dopo una lunga finestra cieca il processo non riprende come nuovo.</p>
+
+  <h4>Implicazione epistemica</h4>
+  <p>Con la parametrizzazione $E_\alpha(-(\lambda\tau)^\alpha)$, un lungo periodo senza eventi seleziona valori più bassi di $\lambda$ — regimi intrinsecamente lenti, non necessariamente quiescenti. La percezione del rischio si abbassa, ma questa riduzione è un artefatto dell'accesso limitato, non un riflesso del sistema generatore. L'osservatore che inferisce stabilità dal silenzio commette un errore strutturale: confonde la propria limitazione di accesso con una proprietà del processo.</p>
+</section>
+
+<section>
+  <h2><span class="num">6.</span>Implicazioni per l'inferenza predittiva</h2>
+  <p>Se le osservazioni sono affette da un periodo refrattario $t_r$, la likelihood va costruita sulla distribuzione aged:</p>
+  <div class="eq">$$\pi(\theta \mid \tau_1^{(a)},\ldots,\tau_n^{(a)},t_r) \propto \prod_{i=1}^n f^{(a)}(\tau_i^{(a)},t_r\mid\theta)\,\pi(\theta).$$</div>
+  <p>Il modello deve distinguere tra la dinamica reale del processo generatore e la dinamica filtrata dal sistema di osservazione. Il risultato sull'invarianza della scambiabilità garantisce che la struttura bayesiana rimane coerente anche con osservazioni filtrate.</p>
+  <p>Nei regimi <em>poissonian-like</em> la distorsione di $t_r$ si limita a prefattori e scale. Nei regimi <em>non poissonian-like</em>, fare inferenza ignorando il periodo refrattario equivale a confondere la limitazione osservativa con una proprietà del processo generatore.</p>
+  <p>Come sviluppo ulteriore: se il periodo refrattario è stocastico, $T_r \mid M = m \sim G_m$, condizionato al tipo di evento, si ottiene un modello di rinnovo marcato in cui tempo di arrivo, caratteristiche dell'evento e capacità osservativa del sistema sono modellati congiuntamente.</p>
+</section>
+
+<hr>
+
+<section class="footnotes">
+  <ol>
+    <li id="fn1">Per esempio, tre regimi latenti $\theta_1$ (bassa attività), $\theta_2$ (media), $\theta_3$ (alta): $p(\tau_1,\ldots,\tau_n) = \sum_{k=1}^3 \pi_k \prod_{i=1}^n f(\tau_i\mid\theta_k)$, con $\sum \pi_k = 1$. <a href="#ref1">↑</a></li>
+    <li id="fn2">La stessa struttura consente l'aggiornamento bayesiano: $\pi(\theta\mid\tau_1,\ldots,\tau_n) \propto \bigl[\prod_{i=1}^n f(\tau_i\mid\theta)\bigr]\pi(\theta)$. <a href="#ref2">↑</a></li>
+  </ol>
+</section>
+
+<div class="ref">
+  Vanni, F.; Lambert, D. <em>Aging Renewal Point Processes and Exchangeability of Event Times.</em>
+  Mathematics <strong>2024</strong>, 12(10), 1529.
+  <a href="https://doi.org/10.3390/math12101529" target="_blank">doi:10.3390/math12101529</a>
+</div>
+
+</div><!-- .wrap -->
+</body>
+</html>
